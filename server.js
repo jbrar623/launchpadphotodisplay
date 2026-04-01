@@ -221,6 +221,7 @@ function parseMultipart(body, contentType) {
 
 // ── /api/upload ───────────────────────────────────────────────────────
 async function handleUpload(req, res) {
+  console.log('📥  Upload request received');
   const MAX_BYTES = config.upload.maxFileSizeMB * 1024 * 1024;
 
   // Collect request body
@@ -266,6 +267,7 @@ async function handleUpload(req, res) {
       const ext      = path.extname(file.filename).toLowerCase() || '.jpg';
       const safeName = `photo_${Date.now()}${ext}`;
 
+      console.log(`📤  Uploading to Drive: ${safeName} (${file.mime}, ${(file.data.length/1024).toFixed(0)}KB)`);
       await uploadToDrive(safeName, file.mime, file.data);
 
       res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -274,6 +276,7 @@ async function handleUpload(req, res) {
 
     } catch(e) {
       console.error('Upload error:', e.message);
+      console.error('Stack:', e.stack);
       res.writeHead(500, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'Upload failed. Please try again.' }));
     }
@@ -337,12 +340,21 @@ function handleImage(req, res) {
 }
 
 // ── Determine public base URL ─────────────────────────────────────────
-// On Railway, RAILWAY_PUBLIC_DOMAIN is injected automatically.
+// Railway injects RAILWAY_PUBLIC_DOMAIN (e.g. "iie-display.up.railway.app")
+// We also check RAILWAY_STATIC_URL as a fallback.
 // Locally, fall back to LAN IP so phones on the same wifi can reach /upload.
 function getBaseUrl() {
-  if (process.env.RAILWAY_PUBLIC_DOMAIN) {
-    return `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
+  const railwayDomain = process.env.RAILWAY_PUBLIC_DOMAIN
+    || process.env.RAILWAY_STATIC_URL
+    || env.RAILWAY_PUBLIC_DOMAIN;
+
+  if (railwayDomain) {
+    // Strip any protocol prefix if already included
+    const clean = railwayDomain.replace(/^https?:\/\//, '');
+    return `https://${clean}`;
   }
+
+  // Local fallback — LAN IP for same-network phone access
   const { networkInterfaces } = require('os');
   for (const ifaces of Object.values(networkInterfaces())) {
     for (const iface of ifaces) {
@@ -435,5 +447,6 @@ http.createServer(async (req, res) => {
   console.log(`    Upload   → ${base}/upload  ← QR code points here`);
   console.log(`    Rotation : ${config.photowall.rotationRate / 1000}s per slide`);
   console.log(`    Refresh  : every ${config.photowall.refreshRate / 1000}s`);
+  console.log(`    RAILWAY_PUBLIC_DOMAIN: ${process.env.RAILWAY_PUBLIC_DOMAIN || 'not set'}`);
   console.log(`\n    Press Ctrl+C to stop.\n`);
 });
