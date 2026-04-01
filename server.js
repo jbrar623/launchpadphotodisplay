@@ -137,7 +137,7 @@ async function uploadToDrive(filename, mimeType, buffer) {
   const metadata = JSON.stringify({ name: filename, parents: [FOLDER_ID] });
   const initRes  = await httpsPost(
     'www.googleapis.com',
-    `/upload/drive/v3/files?uploadType=resumable`,
+    `/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true`,
     {
       'Authorization':   `Bearer ${token}`,
       'Content-Type':    'application/json; charset=UTF-8',
@@ -302,7 +302,7 @@ async function handlePhotos(res) {
   const IMAGE_TYPES = config.upload.allowedTypes.map(m => `mimeType='${m}'`).join(' or ');
   const q      = encodeURIComponent(`'${FOLDER_ID}' in parents and (${IMAGE_TYPES}) and trashed=false`);
   const fields = encodeURIComponent('files(id,name,mimeType,modifiedTime)');
-  const listUrl = `https://www.googleapis.com/drive/v3/files?q=${q}&fields=${fields}&pageSize=100&orderBy=modifiedTime%20desc&key=${API_KEY}`;
+  const listUrl = `https://www.googleapis.com/drive/v3/files?q=${q}&fields=${fields}&pageSize=100&orderBy=modifiedTime%20desc&supportsAllDrives=true&includeItemsFromAllDrives=true&key=${API_KEY}`;
 
   try {
     const data = await driveGet(listUrl);
@@ -329,7 +329,7 @@ function handleImage(req, res) {
   const idMatch = req.url.match(/[?&]id=([^&]+)/);
   if (!idMatch) { res.writeHead(400); res.end('Missing id'); return; }
   const fileId   = decodeURIComponent(idMatch[1]);
-  const driveUrl = `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media&key=${API_KEY}`;
+  const driveUrl = `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media&supportsAllDrives=true&key=${API_KEY}`;
   https.get(driveUrl, driveRes => {
     const headers = { 'Cache-Control': 'public, max-age=300' };
     if (driveRes.headers['content-type'])   headers['Content-Type']   = driveRes.headers['content-type'];
