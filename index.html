@@ -57,24 +57,25 @@ html, body {
   position: absolute;
   inset: 0;
   z-index: 80;
-  display: grid;
-  grid-template-columns: 1fr 1px 1fr;
+  display: flex;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
   background: var(--iie-navy);
   transition: opacity 1200ms ease-in-out;
   padding: var(--safe);
-  gap: 80px;
+  gap: 0;
 }
 #holding.fade-out { opacity: 0; pointer-events: none; }
 
-/* background geometry */
+/* subtle background geometry — toned down */
 #holding::before {
   content: '';
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 900px 600px at 10% 110%, rgba(53,105,129,0.35) 0%, transparent 70%),
-    radial-gradient(ellipse 700px 500px at 95% -5%, rgba(121,201,225,0.15) 0%, transparent 65%);
+    radial-gradient(ellipse 700px 500px at 5% 100%, rgba(53,105,129,0.18) 0%, transparent 70%),
+    radial-gradient(ellipse 500px 400px at 98% 0%, rgba(121,201,225,0.08) 0%, transparent 65%);
   pointer-events: none;
 }
 
@@ -87,18 +88,20 @@ html, body {
   background: linear-gradient(to right, var(--iie-gold-dark), var(--iie-gold-light), var(--iie-sky));
 }
 
-/* ── Left column: branding + loading state ── */
+/* ── Centre column: logo hero layout ── */
 #holding-left {
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: center;
-  gap: 36px;
+  gap: 48px;
   position: relative;
   z-index: 1;
+  width: 100%;
 }
 
 #holding-logo {
-  height: 220px;
+  height: 320px;
   width: auto;
   display: block;
 }
@@ -106,21 +109,21 @@ html, body {
 #holding-text {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
 }
 
 #holding-title {
   font-family: var(--font-head);
-  font-size: 52px;
+  font-size: 42px;
   font-weight: 700;
   letter-spacing: -1px;
   line-height: 1.1;
   color: var(--iie-white);
 }
 
-#holding-title span {
-  color: var(--iie-gold-dark);
-}
+#holding-title span { color: var(--iie-gold-dark); }
 
 #holding-subtitle {
   font-family: var(--font-body);
@@ -128,7 +131,7 @@ html, body {
   font-weight: 300;
   color: var(--muted);
   line-height: 1.6;
-  max-width: 480px;
+  max-width: 560px;
 }
 
 /* pulsing dots loader */
@@ -136,7 +139,6 @@ html, body {
   display: flex;
   gap: 10px;
   align-items: center;
-  margin-top: 8px;
 }
 .loader-dot {
   width: 8px; height: 8px;
@@ -151,63 +153,9 @@ html, body {
   40%           { opacity: 1;    transform: scale(1.1); }
 }
 
-/* ── Divider ── */
-#holding-divider {
-  width: 1px;
-  height: 340px;
-  background: rgba(255,255,255,0.12);
-  position: relative;
-  z-index: 1;
-  justify-self: center;
-}
-
-/* ── Right column: QR code ── */
-#holding-right {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 28px;
-  position: relative;
-  z-index: 1;
-}
-
-#holding-qr-eyebrow {
-  font-family: var(--font-head);
-  font-size: 11px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--iie-sky);
-  font-weight: 600;
-  text-align: center;
-}
-
-#holding-qr-canvas {
-  width: 220px;
-  height: 220px;
-  border-radius: 12px;
-  background: white;
-  display: block;
-  padding: 10px;
-}
-
-#holding-qr-label {
-  font-family: var(--font-head);
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--iie-white);
-  text-align: center;
-  line-height: 1.2;
-}
-
-#holding-qr-sub {
-  font-family: var(--font-body);
-  font-size: 14px;
-  color: var(--muted);
-  text-align: center;
-  line-height: 1.6;
-  max-width: 320px;
-}
+/* hide right column and divider — full-width centred layout now */
+#holding-divider { display: none; }
+#holding-right   { display: none; }
 
 /* ── SLIDESHOW ────────────────────────────────────────────────────── */
 #slideshow { position: absolute; inset: 0; }
@@ -269,7 +217,7 @@ html, body {
   padding: 0 var(--safe);
 }
 #logo-lockup { display: flex; align-items: center; }
-#logo-lockup img { height: 64px; width: auto; display: block; }
+#logo-lockup img { height: 80px; width: auto; display: block; }
 
 /* ── CLOCK — top-right ────────────────────────────────────────────── */
 #clock-wrap {
@@ -430,12 +378,11 @@ html, body {
 
   <!-- Holding slide: shown on launch, fades out once photos load -->
   <div id="holding">
-    <!-- Left: branding + loading state -->
     <div id="holding-left">
       <img id="holding-logo" src="iie-logo.svg" alt="IIE" />
       <div id="holding-text">
-        <div id="holding-title">Share Your<br><span>Photos</span></div>
-        <div id="holding-subtitle">Scan the QR code to upload your photos directly to the display. They'll appear here within seconds.</div>
+        <div id="holding-title">Share Your <span>Photos</span></div>
+        <div id="holding-subtitle">Scan the QR code to upload your photos — they'll appear on screen within seconds.</div>
       </div>
       <div id="holding-loader">
         <div class="loader-dot"></div>
@@ -450,15 +397,10 @@ html, body {
       </div>
     </div>
 
-    <!-- Divider -->
+    <!-- Hidden — kept in DOM so QR generation still works -->
     <div id="holding-divider"></div>
-
-    <!-- Right: large QR code -->
     <div id="holding-right">
-      <div id="holding-qr-eyebrow">Add Your Photos</div>
       <canvas id="holding-qr-canvas" width="220" height="220"></canvas>
-      <div id="holding-qr-label">Scan to Upload</div>
-      <div id="holding-qr-sub">Opens Google Drive — drop your photos in and they'll appear on screen</div>
     </div>
   </div>
 
@@ -483,12 +425,6 @@ html, body {
         <div id="qr-eyebrow">Add Your Photos</div>
         <div id="qr-heading">Scan to Upload</div>
         <div id="qr-sub">Open Google Drive and drop your photos into the shared folder</div>
-        <div class="insta-handle" style="margin-top:10px;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="var(--iie-sky)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
-            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
-          </svg>
-          <span style="font-size:13px;">@innovatemru</span>
-        </div>
       </div>
     </div>
   </div>
