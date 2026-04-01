@@ -423,16 +423,21 @@ http.createServer(async (req, res) => {
     }
 
     if (staticPath === '/upload.html') {
-      // Inject upload config into upload page
-      const uploadCfg = JSON.stringify({
-        maxFileSizeMB: config.upload.maxFileSizeMB,
-        allowedTypes:  config.upload.allowedTypes,
-        pageTitle:     config.upload.pageTitle,
-        pageSubtitle:  config.upload.pageSubtitle,
-      });
-      const html = data.toString().replace('/*%%UPLOAD_CONFIG%%*/', `const UPLOAD_CONFIG = ${uploadCfg};`);
-      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-      res.end(html);
+      try {
+        const uploadCfg = JSON.stringify({
+          maxFileSizeMB: config.upload.maxFileSizeMB,
+          allowedTypes:  config.upload.allowedTypes,
+          pageTitle:     config.upload.pageTitle,
+          pageSubtitle:  config.upload.pageSubtitle,
+        });
+        const html = data.toString().replace('/*%%UPLOAD_CONFIG%%*/', `const UPLOAD_CONFIG = ${uploadCfg};`);
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        res.end(html);
+      } catch(e) {
+        console.error('❌  Failed to serve upload.html:', e.message);
+        console.error('    config.upload value:', JSON.stringify(config.upload));
+        res.writeHead(500); res.end('Server error serving upload page');
+      }
       return;
     }
 
