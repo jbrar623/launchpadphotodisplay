@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#003352">
+<title>Upload Photos</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Nunito+Sans:wght@300;400;600&display=swap');
+
+:root {
+  --navy:       #003352;
+  --white:      #FFFFFF;
+  --teal:       #356981;
+  --sky:        #79C9E1;
+  --sky-pale:   #D5EEF3;
+  --gold:       #F1C528;
+  --gold-light: #FFDC54;
+  --red:        #C93631;
+  --green:      #2ecc71;
+  --font-head:  'Montserrat', sans-serif;
+  --font-body:  'Nunito Sans', 'Avenir', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { height: 100%; }
+
+body {
+  min-height: 100%;
+  background: var(--navy);
+  font-family: var(--font-body);
+  color: var(--white);
+  padding: 0;
+  /* subtle background texture */
+  background-image:
+    radial-gradient(ellipse 600px 400px at 110% 0%, rgba(121,201,225,0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 500px 400px at -10% 100%, rgba(53,105,129,0.25) 0%, transparent 65%);
+}
+
+/* gold bar top */
+body::before {
+  content: '';
+  display: block;
+  height: 5px;
+  background: linear-gradient(to right, var(--gold), var(--gold-light), var(--sky));
+}
+
+.page {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 32px 24px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.logo {
+  height: 40px;
+  width: auto;
+  display: block;
+}
+
+.header h1 {
+  font-family: var(--font-head);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  color: var(--white);
+}
+
+.header h1 span { color: var(--gold); }
+
+.header p {
+  font-size: 15px;
+  font-weight: 300;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.6;
+}
+
+/* ── Drop zone ── */
+.dropzone {
+  border: 2px dashed rgba(121,201,225,0.35);
+  border-radius: 16px;
+  padding: 36px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  background: rgba(255,255,255,0.04);
+  position: relative;
+}
+
+.dropzone.drag-over {
+  border-color: var(--gold);
+  background: rgba(241,197,40,0.07);
+}
+
+.dropzone.has-files {
+  border-color: var(--sky);
+  background: rgba(121,201,225,0.06);
+}
+
+.dropzone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+.dz-icon {
+  width: 48px; height: 48px;
+  margin: 0 auto 14px;
+  background: rgba(241,197,40,0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dz-icon svg { width: 24px; height: 24px; fill: var(--gold); }
+
+.dz-title {
+  font-family: var(--font-head);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--white);
+  margin-bottom: 6px;
+}
+
+.dz-sub {
+  font-size: 13px;
+  color: rgba(255,255,255,0.45);
+  line-height: 1.5;
+}
+
+.dz-sub strong {
+  color: var(--sky);
+  font-weight: 600;
+}
+
+/* ── File preview list ── */
+#file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+
+.file-thumb {
+  width: 44px; height: 44px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.1);
+}
+
+.file-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-size {
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+  margin-top: 2px;
+}
+
+.file-status {
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.file-status.pending  { color: rgba(255,255,255,0.35); }
+.file-status.uploading { color: var(--gold); }
+.file-status.done     { color: var(--green); }
+.file-status.error    { color: var(--red); }
+
+/* ── Upload button ── */
+#upload-btn {
+  width: 100%;
+  padding: 16px;
+  background: var(--gold);
+  color: var(--navy);
+  border: none;
+  border-radius: 12px;
+  font-family: var(--font-head);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s, opacity 0.2s;
+  display: none;
+}
+
+#upload-btn:hover  { background: var(--gold-light); }
+#upload-btn:active { transform: scale(0.98); }
+#upload-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* ── Success state ── */
+#success-screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
+  padding: 24px 0;
+}
+
+.success-icon {
+  width: 72px; height: 72px;
+  background: rgba(46,204,113,0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.success-icon svg { width: 36px; height: 36px; stroke: var(--green); fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+#success-screen h2 {
+  font-family: var(--font-head);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--white);
+}
+
+#success-screen p {
+  font-size: 15px;
+  color: rgba(255,255,255,0.55);
+  line-height: 1.6;
+  max-width: 300px;
+}
+
+#upload-more-btn {
+  padding: 14px 28px;
+  background: transparent;
+  color: var(--sky);
+  border: 1px solid rgba(121,201,225,0.4);
+  border-radius: 10px;
+  font-family: var(--font-head);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#upload-more-btn:hover { background: rgba(121,201,225,0.08); }
+
+/* ── Error banner ── */
+#error-banner {
+  background: rgba(201,54,49,0.15);
+  border: 1px solid rgba(201,54,49,0.4);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #f08080;
+  display: none;
+  line-height: 1.5;
+}
+
+/* ── Footer ── */
+.footer {
+  font-size: 12px;
+  color: rgba(255,255,255,0.2);
+  text-align: center;
+  line-height: 1.6;
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <img class="logo" src="iie-logo.png" alt="IIE" onerror="this.style.display='none'" />
+    <h1 id="page-title">Share Your<br><span>Photos</span></h1>
+    <p id="page-subtitle">Upload your photos and watch them appear on the display!</p>
+  </div>
+
+  <!-- Main upload area (hidden after success) -->
+  <div id="upload-area">
+
+    <!-- Drop zone / file picker -->
+    <div class="dropzone" id="dropzone">
+      <input type="file" id="file-input" accept="image/*" multiple />
+      <div class="dz-icon">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+        </svg>
+      </div>
+      <div class="dz-title">Tap to choose photos</div>
+      <div class="dz-sub">
+        Or drag and drop here<br>
+        <strong>JPG, PNG, HEIC, WebP</strong> · Max <span id="max-size">20</span>MB each
+      </div>
+    </div>
+
+    <!-- Selected files -->
+    <div id="file-list"></div>
+
+    <!-- Error -->
+    <div id="error-banner"></div>
+
+    <!-- Upload button -->
+    <button id="upload-btn" onclick="startUpload()">Upload Photos</button>
+
+  </div>
+
+  <!-- Success screen -->
+  <div id="success-screen">
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h2>Photos Uploaded!</h2>
+    <p>Your photos have been added and will appear on the display shortly.</p>
+    <button id="upload-more-btn" onclick="resetForm()">Upload More</button>
+  </div>
+
+  <div class="footer">
+    Photos appear on screen within <span id="refresh-note">30</span> seconds of uploading.
+  </div>
+
+</div>
+
+<script>
+/*%%UPLOAD_CONFIG%%*/
+
+// Apply config
+document.getElementById('page-title').innerHTML  = UPLOAD_CONFIG.pageTitle.replace(' ', '<br><span>').replace(/(<span>.+)$/, '$1</span>') || 'Share Your<br><span>Photos</span>';
+document.getElementById('page-subtitle').textContent = UPLOAD_CONFIG.pageSubtitle;
+document.getElementById('max-size').textContent = UPLOAD_CONFIG.maxFileSizeMB;
+
+let selectedFiles = [];
+
+// ── File input ──────────────────────────────────────────────────────
+const fileInput = document.getElementById('file-input');
+const dropzone  = document.getElementById('dropzone');
+
+fileInput.addEventListener('change', () => handleFiles(Array.from(fileInput.files)));
+
+dropzone.addEventListener('dragover',  e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('drag-over');
+  handleFiles(Array.from(e.dataTransfer.files));
+});
+
+function handleFiles(files) {
+  const maxBytes = UPLOAD_CONFIG.maxFileSizeMB * 1024 * 1024;
+  const errors   = [];
+
+  files.forEach(f => {
+    if (!UPLOAD_CONFIG.allowedTypes.includes(f.type) && !f.type.startsWith('image/')) {
+      errors.push(`${f.name}: not an allowed image type`); return;
+    }
+    if (f.size > maxBytes) {
+      errors.push(`${f.name}: exceeds ${UPLOAD_CONFIG.maxFileSizeMB}MB limit`); return;
+    }
+    if (!selectedFiles.find(s => s.name === f.name && s.size === f.size)) {
+      selectedFiles.push(f);
+    }
+  });
+
+  if (errors.length) showError(errors.join('\n'));
+  renderFileList();
+}
+
+function renderFileList() {
+  const list = document.getElementById('file-list');
+  list.innerHTML = '';
+  selectedFiles.forEach((f, i) => {
+    const item = document.createElement('div');
+    item.className = 'file-item';
+    item.id = `file-item-${i}`;
+
+    const thumb = document.createElement('img');
+    thumb.className = 'file-thumb';
+    thumb.src = URL.createObjectURL(f);
+
+    const info = document.createElement('div');
+    info.className = 'file-info';
+    info.innerHTML = `<div class="file-name">${f.name}</div><div class="file-size">${(f.size/1024/1024).toFixed(1)}MB</div>`;
+
+    const status = document.createElement('div');
+    status.className = 'file-status pending';
+    status.id = `status-${i}`;
+    status.textContent = 'Ready';
+
+    item.appendChild(thumb);
+    item.appendChild(info);
+    item.appendChild(status);
+    list.appendChild(item);
+  });
+
+  dropzone.classList.toggle('has-files', selectedFiles.length > 0);
+  document.getElementById('upload-btn').style.display = selectedFiles.length ? 'block' : 'none';
+  hideError();
+}
+
+// ── Upload ──────────────────────────────────────────────────────────
+async function startUpload() {
+  if (!selectedFiles.length) return;
+  const btn = document.getElementById('upload-btn');
+  btn.disabled = true;
+  btn.textContent = 'Uploading…';
+  hideError();
+
+  let allOk = true;
+
+  for (let i = 0; i < selectedFiles.length; i++) {
+    const statusEl = document.getElementById(`status-${i}`);
+    statusEl.className = 'file-status uploading';
+    statusEl.textContent = 'Uploading…';
+
+    const formData = new FormData();
+    formData.append('photo', selectedFiles[i], selectedFiles[i].name);
+
+    try {
+      const res  = await fetch('/api/upload', { method: 'POST', body: formData });
+      const json = await res.json();
+
+      if (res.ok && json.ok) {
+        statusEl.className = 'file-status done';
+        statusEl.textContent = '✓ Done';
+      } else {
+        statusEl.className = 'file-status error';
+        statusEl.textContent = '✗ Failed';
+        showError(json.error || 'Upload failed');
+        allOk = false;
+      }
+    } catch(e) {
+      statusEl.className = 'file-status error';
+      statusEl.textContent = '✗ Error';
+      showError('Could not reach server. Are you on the same wifi?');
+      allOk = false;
+    }
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Upload Photos';
+
+  if (allOk) {
+    setTimeout(() => {
+      document.getElementById('upload-area').style.display = 'none';
+      document.getElementById('success-screen').style.display = 'flex';
+    }, 600);
+  }
+}
+
+function resetForm() {
+  selectedFiles = [];
+  document.getElementById('file-input').value = '';
+  document.getElementById('file-list').innerHTML = '';
+  document.getElementById('upload-btn').style.display = 'none';
+  document.getElementById('upload-area').style.display = 'block';
+  document.getElementById('success-screen').style.display = 'none';
+  dropzone.classList.remove('has-files');
+  hideError();
+}
+
+function showError(msg) {
+  const b = document.getElementById('error-banner');
+  b.textContent = msg; b.style.display = 'block';
+}
+function hideError() {
+  document.getElementById('error-banner').style.display = 'none';
+}
+</script>
+</body>
+</html>

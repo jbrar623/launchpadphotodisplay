@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IIE Photo Display</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Nunito+Sans:wght@300;400;600&display=swap');
+
+/* ── IIE BRAND TOKENS ─────────────────────────────────────────────── */
+:root {
+  --iie-navy:       #003352;
+  --iie-white:      #FFFFFF;
+  --iie-teal-mid:   #356981;
+  --iie-grey:       #A8A9AD;
+  --iie-red-dark:   #C93631;
+  --iie-red-light:  #F25D4F;
+  --iie-sky:        #79C9E1;
+  --iie-sky-pale:   #D5EEF3;
+  --iie-gold-dark:  #F1C528;
+  --iie-gold-light: #FFDC54;
+
+  --accent:         var(--iie-gold-dark);
+  --bg:             var(--iie-navy);
+  --text:           var(--iie-white);
+  --muted:          rgba(255,255,255,0.50);
+  --overlay-bg:     rgba(0,33,52,0.80);
+
+  --safe: 72px;   /* overscan-safe inset — 3.75% of 1920px canvas */
+
+  --font-head: 'Montserrat', 'Nunito Sans', sans-serif;
+  --font-body: 'Nunito Sans', 'Avenir', 'Century Gothic', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: #000;
+  font-family: var(--font-body);
+  color: var(--text);
+}
+
+/* ── 16:9 CANVAS (1920×1080, CSS-scaled to fit any projector) ─────── */
+#canvas {
+  position: fixed;
+  width: 1920px;
+  height: 1080px;
+  transform-origin: top left;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* ── HOLDING SLIDE ────────────────────────────────────────────────── */
+#holding {
+  position: absolute;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  align-items: center;
+  background: var(--iie-navy);
+  transition: opacity 1200ms ease-in-out;
+  padding: var(--safe);
+  gap: 80px;
+}
+#holding.fade-out { opacity: 0; pointer-events: none; }
+
+/* background geometry */
+#holding::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 900px 600px at 10% 110%, rgba(53,105,129,0.35) 0%, transparent 70%),
+    radial-gradient(ellipse 700px 500px at 95% -5%, rgba(121,201,225,0.15) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+/* gold accent bar across the top */
+#holding::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 6px;
+  background: linear-gradient(to right, var(--iie-gold-dark), var(--iie-gold-light), var(--iie-sky));
+}
+
+/* ── Left column: branding + loading state ── */
+#holding-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 36px;
+  position: relative;
+  z-index: 1;
+}
+
+#holding-logo {
+  height: 160px;
+  width: auto;
+  display: block;
+}
+
+#holding-text {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#holding-title {
+  font-family: var(--font-head);
+  font-size: 52px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  line-height: 1.1;
+  color: var(--iie-white);
+}
+
+#holding-title span {
+  color: var(--iie-gold-dark);
+}
+
+#holding-subtitle {
+  font-family: var(--font-body);
+  font-size: 18px;
+  font-weight: 300;
+  color: var(--muted);
+  line-height: 1.6;
+  max-width: 480px;
+}
+
+/* pulsing dots loader */
+#holding-loader {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 8px;
+}
+.loader-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--iie-gold-dark);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+.loader-dot:nth-child(2) { animation-delay: 0.2s; }
+.loader-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes pulse {
+  0%, 80%, 100% { opacity: 0.25; transform: scale(0.85); }
+  40%           { opacity: 1;    transform: scale(1.1); }
+}
+
+/* ── Divider ── */
+#holding-divider {
+  width: 1px;
+  height: 340px;
+  background: rgba(255,255,255,0.12);
+  position: relative;
+  z-index: 1;
+  justify-self: center;
+}
+
+/* ── Right column: QR code ── */
+#holding-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  position: relative;
+  z-index: 1;
+}
+
+#holding-qr-eyebrow {
+  font-family: var(--font-head);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--iie-sky);
+  font-weight: 600;
+  text-align: center;
+}
+
+#holding-qr-canvas {
+  width: 220px;
+  height: 220px;
+  border-radius: 12px;
+  background: white;
+  display: block;
+  padding: 10px;
+}
+
+#holding-qr-label {
+  font-family: var(--font-head);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--iie-white);
+  text-align: center;
+  line-height: 1.2;
+}
+
+#holding-qr-sub {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.6;
+  max-width: 320px;
+}
+
+/* ── SLIDESHOW ────────────────────────────────────────────────────── */
+#slideshow { position: absolute; inset: 0; }
+
+.slide {
+  position: absolute; inset: 0;
+  opacity: 0;
+  transition: opacity 1000ms ease-in-out;
+}
+.slide.active { opacity: 1; }
+
+.slide-img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.slide.active .slide-img {
+  animation: kenburns 7500ms ease-in-out forwards;
+}
+@keyframes kenburns {
+  from { transform: scale(1.0); }
+  to   { transform: scale(1.07); }
+}
+
+.slide::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0,22,40,0.60) 100%);
+  pointer-events: none;
+}
+#bottom-grad {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 340px;
+  background: linear-gradient(to top, rgba(0,33,52,0.88) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* ── PROGRESS BAR ─────────────────────────────────────────────────── */
+#progress-bar {
+  position: absolute;
+  top: 0; left: 0;
+  height: 5px;
+  width: 0%;
+  background: linear-gradient(to right, var(--iie-gold-dark), var(--iie-gold-light));
+  z-index: 100;
+}
+
+/* ── TOP BAR ──────────────────────────────────────────────────────── */
+#top-bar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 88px;
+  background: linear-gradient(to bottom, rgba(0,33,52,0.92) 0%, transparent 100%);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--safe);
+}
+#logo-lockup { display: flex; align-items: center; }
+#logo-lockup img { height: 48px; width: auto; display: block; }
+
+/* ── CLOCK — top-right ────────────────────────────────────────────── */
+#clock-wrap {
+  position: absolute;
+  top: var(--safe);
+  right: var(--safe);
+  z-index: 50;
+  text-align: right;
+}
+#clock-time {
+  font-family: var(--font-head);
+  font-size: 78px;
+  font-weight: 300;
+  letter-spacing: -2px;
+  line-height: 1;
+  text-shadow: 0 2px 30px rgba(0,0,0,0.5);
+}
+#clock-time .colon {
+  color: var(--iie-gold-dark);
+  animation: blink 1s step-end infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+#clock-date {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 300;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-top: 8px;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+}
+
+/* ── QR CARD — bottom-left ────────────────────────────────────────── */
+#qr-wrap {
+  position: absolute;
+  bottom: var(--safe);
+  left: var(--safe);
+  z-index: 50;
+}
+#qr-card {
+  background: var(--overlay-bg);
+  border: 1px solid rgba(121,201,225,0.22);
+  border-left: 4px solid var(--iie-gold-dark);
+  border-radius: 16px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+#qr-canvas {
+  width: 150px; height: 150px;
+  border-radius: 8px;
+  background: white;
+  display: block;
+  flex-shrink: 0;
+}
+#qr-text { display: flex; flex-direction: column; gap: 5px; max-width: 210px; }
+#qr-eyebrow {
+  font-family: var(--font-head);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--iie-sky);
+  font-weight: 600;
+}
+#qr-heading {
+  font-family: var(--font-head);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+#qr-sub {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
+  line-height: 1.55;
+}
+
+/* ── DOTS — bottom-right ──────────────────────────────────────────── */
+#counter {
+  position: absolute;
+  bottom: calc(var(--safe) + 10px);
+  right: var(--safe);
+  z-index: 50;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.28);
+  transition: background 0.35s, transform 0.35s;
+}
+.dot.active { background: var(--iie-gold-dark); transform: scale(1.55); }
+
+/* ── ERROR BANNER ─────────────────────────────────────────────────── */
+#error-banner {
+  position: absolute;
+  top: 100px; left: 50%; transform: translateX(-50%);
+  background: rgba(201,54,49,0.92);
+  border-radius: 10px;
+  padding: 12px 28px;
+  font-size: 15px;
+  z-index: 200;
+  display: none;
+  max-width: 900px;
+  text-align: center;
+  font-family: var(--font-body);
+}
+</style>
+</head>
+<body>
+
+<div id="canvas">
+
+  <!-- Progress bar -->
+  <div id="progress-bar"></div>
+
+  <!-- Slideshow (renders behind everything) -->
+  <div id="slideshow"></div>
+  <div id="bottom-grad"></div>
+
+  <!-- Holding slide: shown on launch, fades out once photos load -->
+  <div id="holding">
+    <!-- Left: branding + loading state -->
+    <div id="holding-left">
+      <img id="holding-logo" src="iie-logo.svg" alt="IIE" />
+      <div id="holding-text">
+        <div id="holding-title">Share Your<br><span>Photos</span></div>
+        <div id="holding-subtitle">Scan the QR code to upload your photos directly to the display. They'll appear here within seconds.</div>
+      </div>
+      <div id="holding-loader">
+        <div class="loader-dot"></div>
+        <div class="loader-dot"></div>
+        <div class="loader-dot"></div>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div id="holding-divider"></div>
+
+    <!-- Right: large QR code -->
+    <div id="holding-right">
+      <div id="holding-qr-eyebrow">Add Your Photos</div>
+      <canvas id="holding-qr-canvas" width="220" height="220"></canvas>
+      <div id="holding-qr-label">Scan to Upload</div>
+      <div id="holding-qr-sub">Drop your photos in and they'll appear on screen</div>
+    </div>
+  </div>
+
+  <!-- Top bar with logo -->
+  <div id="top-bar">
+    <div id="logo-lockup">
+      <img src="iie-logo.svg" alt="IIE" />
+    </div>
+  </div>
+
+  <!-- Clock -->
+  <div id="clock-wrap">
+    <div id="clock-time">00<span class="colon">:</span>00</div>
+    <div id="clock-date">Wednesday, April 1</div>
+  </div>
+
+  <!-- QR card -->
+  <div id="qr-wrap">
+    <div id="qr-card">
+      <canvas id="qr-canvas" width="150" height="150"></canvas>
+      <div id="qr-text">
+        <div id="qr-eyebrow">Add Your Photos</div>
+        <div id="qr-heading">Scan to Upload</div>
+        <div id="qr-sub">Drop your photos in and they'll appear on screen</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide dots -->
+  <div id="counter"></div>
+
+  <!-- Error banner -->
+  <div id="error-banner"></div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+// Config is injected here by server.js at request time — API key never lives in this file
+/*%%CONFIG%%*/
+
+// ── CANVAS SCALING ───────────────────────────────────────────────────
+const CANVAS_W = 1920, CANVAS_H = 1080;
+const canvasEl = document.getElementById('canvas');
+function fitCanvas() {
+  const scale = Math.min(window.innerWidth / CANVAS_W, window.innerHeight / CANVAS_H);
+  const ox = (window.innerWidth  - CANVAS_W * scale) / 2;
+  const oy = (window.innerHeight - CANVAS_H * scale) / 2;
+  canvasEl.style.transform = `translate(${ox}px,${oy}px) scale(${scale})`;
+}
+fitCanvas();
+window.addEventListener('resize', fitCanvas);
+
+// ── STATE ────────────────────────────────────────────────────────────
+let photos = [], currentIdx = 0, slideTimer = null, qrDone = false;
+const { driveUrl, uploadUrl, rotationRate, refreshRate, qrHeading, qrSubtext } = DISPLAY_CONFIG;
+
+// ── INIT ─────────────────────────────────────────────────────────────
+document.getElementById('qr-heading').textContent = qrHeading;
+document.getElementById('qr-sub').textContent     = qrSubtext;
+startClock();
+generateQR(uploadUrl);
+fetchPhotos();
+// Poll Drive for new uploads at the refreshRate set in display.config.js
+setInterval(fetchPhotos, refreshRate);
+
+// ── CLOCK ─────────────────────────────────────────────────────────────
+function startClock() { updateClock(); setInterval(updateClock, 1000); }
+function updateClock() {
+  const n = new Date();
+  const h = String(n.getHours()).padStart(2,'0');
+  const m = String(n.getMinutes()).padStart(2,'0');
+  document.getElementById('clock-time').innerHTML = `${h}<span class="colon">:</span>${m}`;
+  const days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('clock-date').textContent =
+    `${days[n.getDay()]}, ${months[n.getMonth()]} ${n.getDate()}`;
+}
+
+// ── QR CODE ───────────────────────────────────────────────────────────
+// Renders into both the large holding slide QR and the small corner card.
+function generateQR(url) {
+  if (qrDone) return; qrDone = true;
+
+  function renderInto(canvasEl, size) {
+    const tmp = document.createElement('div');
+    new QRCode(tmp, { text: url, width: size, height: size,
+      colorDark: '#003352', colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M });
+    setTimeout(() => {
+      const src = tmp.querySelector('img') || tmp.querySelector('canvas');
+      if (!src) return;
+      const ctx = canvasEl.getContext('2d');
+      if (src.tagName === 'CANVAS') { ctx.drawImage(src, 0, 0, size, size); }
+      else { const i = new Image(); i.onload = () => ctx.drawImage(i, 0, 0, size, size); i.src = src.src; }
+    }, 350);
+  }
+
+  renderInto(document.getElementById('holding-qr-canvas'), 220);
+  renderInto(document.getElementById('qr-canvas'), 150);
+}
+
+// ── FETCH PHOTOS FROM LOCAL SERVER ───────────────────────────────────
+// The server handles all Drive API calls — the API key never reaches
+// the browser. Images are also proxied through /api/image so the
+// browser only ever talks to localhost.
+async function fetchPhotos() {
+  try {
+    const res = await fetch('/api/photos');
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({}));
+      showError(`Photo fetch failed: ${e.error || res.status}`);
+      return;
+    }
+
+    const files = await res.json();
+
+    if (!files.length) {
+      document.getElementById('holding-subtitle').textContent = 'Waiting for photos to be added…';
+      return;
+    }
+
+    const newIds = files.map(p => p.id).sort().join(',');
+    const oldIds = photos.map(p => p.id).sort().join(',');
+
+    if (newIds !== oldIds) {
+      photos = files;
+      currentIdx = 0;
+      buildSlideshow();
+      buildDots();
+      clearTimeout(slideTimer);
+      showSlide(0);
+      dismissHolding();
+    }
+  } catch(e) {
+    showError('Could not reach local server. Is server.js running?');
+  }
+}
+
+// ── HOLDING SLIDE ─────────────────────────────────────────────────────
+function dismissHolding() {
+  const h = document.getElementById('holding');
+  if (!h || h.classList.contains('fade-out')) return;
+  // Short delay so the first slide has time to render beneath
+  setTimeout(() => {
+    h.classList.add('fade-out');
+    setTimeout(() => h.style.display = 'none', 1300);
+  }, 600);
+}
+
+// ── SLIDES ────────────────────────────────────────────────────────────
+function buildSlideshow() {
+  const ss = document.getElementById('slideshow'); ss.innerHTML = '';
+  photos.forEach((p, i) => {
+    const div = document.createElement('div'); div.className = 'slide'; div.id = `slide-${i}`;
+    const img = document.createElement('img'); img.className = 'slide-img';
+    img.src = p.url; img.alt = p.name;
+    img.onerror = () => div.style.display = 'none';
+    div.appendChild(img); ss.appendChild(div);
+  });
+}
+function buildDots() {
+  const ctr = document.getElementById('counter'); ctr.innerHTML = '';
+  for (let i = 0; i < Math.min(photos.length, 24); i++) {
+    const d = document.createElement('div'); d.className = 'dot'; d.id = `dot-${i}`;
+    ctr.appendChild(d);
+  }
+}
+function showSlide(idx) {
+  document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.dot').forEach(d => d.classList.remove('active'));
+  const slide = document.getElementById(`slide-${idx}`);
+  const dot   = document.getElementById(`dot-${idx}`);
+  if (slide) slide.classList.add('active');
+  if (dot)   dot.classList.add('active');
+  currentIdx = idx;
+  startProgress();
+  slideTimer = setTimeout(() => showSlide((idx + 1) % photos.length), rotationRate);
+}
+function startProgress() {
+  const bar = document.getElementById('progress-bar');
+  bar.style.transition = 'none'; bar.style.width = '0%';
+  bar.offsetWidth;
+  bar.style.transition = `width ${rotationRate}ms linear`; bar.style.width = '100%';
+}
+
+// ── ERROR ─────────────────────────────────────────────────────────────
+function showError(msg) {
+  const b = document.getElementById('error-banner');
+  b.textContent = msg; b.style.display = 'block';
+  setTimeout(() => b.style.display = 'none', 7000);
+}
+
+// ── KEYBOARD ──────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') {
+    if (photos.length) { clearTimeout(slideTimer); showSlide((currentIdx + 1) % photos.length); }
+  }
+  if (e.key === 'ArrowLeft') {
+    if (photos.length) { clearTimeout(slideTimer); showSlide((currentIdx - 1 + photos.length) % photos.length); }
+  }
+  if (e.key === 'f' || e.key === 'F') {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  }
+});
+</script>
+</body>
+</html>
