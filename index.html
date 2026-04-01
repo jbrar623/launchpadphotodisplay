@@ -217,7 +217,7 @@ html, body {
   padding: 0 var(--safe);
 }
 #logo-lockup { display: flex; align-items: center; }
-#logo-lockup img { height: 80px; width: auto; display: block; }
+#logo-lockup img { height: 110px; width: auto; display: block; }
 
 /* ── CLOCK — top-right ────────────────────────────────────────────── */
 #clock-wrap {
@@ -262,25 +262,25 @@ html, body {
   background: var(--overlay-bg);
   border: 1px solid rgba(121,201,225,0.22);
   border-left: 4px solid var(--iie-gold-dark);
-  border-radius: 16px;
-  padding: 20px 24px;
+  border-radius: 20px;
+  padding: 28px 32px;
   display: flex;
   align-items: center;
-  gap: 22px;
+  gap: 28px;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
 #qr-canvas {
-  width: 150px; height: 150px;
-  border-radius: 8px;
+  width: 200px; height: 200px;
+  border-radius: 10px;
   background: white;
   display: block;
   flex-shrink: 0;
 }
-#qr-text { display: flex; flex-direction: column; gap: 5px; max-width: 210px; }
+#qr-text { display: flex; flex-direction: column; gap: 6px; max-width: 260px; }
 #qr-eyebrow {
   font-family: var(--font-head);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--iie-sky);
@@ -288,13 +288,13 @@ html, body {
 }
 #qr-heading {
   font-family: var(--font-head);
-  font-size: 20px;
+  font-size: 26px;
   font-weight: 700;
   line-height: 1.2;
 }
 #qr-sub {
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 15px;
   color: var(--muted);
   margin-top: 4px;
   line-height: 1.55;
@@ -420,7 +420,7 @@ html, body {
   <!-- QR card -->
   <div id="qr-wrap">
     <div id="qr-card">
-      <canvas id="qr-canvas" width="150" height="150"></canvas>
+      <canvas id="qr-canvas" width="200" height="200"></canvas>
       <div id="qr-text">
         <div id="qr-eyebrow">Add Your Photos</div>
         <div id="qr-heading">Scan to Upload</div>
@@ -508,7 +508,7 @@ function generateQR(url) {
   }
 
   renderInto(document.getElementById('holding-qr-canvas'), 220);
-  renderInto(document.getElementById('qr-canvas'), 150);
+  renderInto(document.getElementById('qr-canvas'), 200);
 }
 
 // ── FETCH PHOTOS FROM LOCAL SERVER ───────────────────────────────────
