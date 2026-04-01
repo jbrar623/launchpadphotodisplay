@@ -57,18 +57,17 @@ html, body {
   position: absolute;
   inset: 0;
   z-index: 80;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   align-items: center;
-  justify-content: center;
   background: var(--iie-navy);
   transition: opacity 1200ms ease-in-out;
   padding: var(--safe);
-  gap: 0;
+  gap: 60px;
 }
 #holding.fade-out { opacity: 0; pointer-events: none; }
 
-/* subtle background geometry — toned down */
+/* subtle background geometry */
 #holding::before {
   content: '';
   position: absolute;
@@ -79,7 +78,7 @@ html, body {
   pointer-events: none;
 }
 
-/* gold accent bar across the top */
+/* gold accent bar */
 #holding::after {
   content: '';
   position: absolute;
@@ -88,20 +87,19 @@ html, body {
   background: linear-gradient(to right, var(--iie-gold-dark), var(--iie-gold-light), var(--iie-sky));
 }
 
-/* ── Centre column: logo hero layout ── */
+/* ── Left column: logo + branding ── */
 #holding-left {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  gap: 48px;
+  gap: 40px;
   position: relative;
   z-index: 1;
-  width: 100%;
 }
 
 #holding-logo {
-  height: 320px;
+  height: 280px;
   width: auto;
   display: block;
 }
@@ -109,14 +107,12 @@ html, body {
 #holding-text {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  text-align: center;
+  gap: 12px;
 }
 
 #holding-title {
   font-family: var(--font-head);
-  font-size: 42px;
+  font-size: 38px;
   font-weight: 700;
   letter-spacing: -1px;
   line-height: 1.1;
@@ -127,11 +123,11 @@ html, body {
 
 #holding-subtitle {
   font-family: var(--font-body);
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 300;
   color: var(--muted);
-  line-height: 1.6;
-  max-width: 560px;
+  line-height: 1.65;
+  max-width: 440px;
 }
 
 /* pulsing dots loader */
@@ -153,9 +149,60 @@ html, body {
   40%           { opacity: 1;    transform: scale(1.1); }
 }
 
-/* hide right column and divider — full-width centred layout now */
+/* ── Divider — hidden, grid handles spacing ── */
 #holding-divider { display: none; }
-#holding-right   { display: none; }
+
+/* ── Right column: QR as hero ── */
+#holding-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  position: relative;
+  z-index: 1;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(121,201,225,0.15);
+  border-radius: 24px;
+  padding: 48px 40px;
+}
+
+#holding-qr-eyebrow {
+  font-family: var(--font-head);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--iie-sky);
+  font-weight: 600;
+  text-align: center;
+}
+
+#holding-qr-canvas {
+  width: 300px;
+  height: 300px;
+  border-radius: 16px;
+  background: white;
+  display: block;
+  padding: 12px;
+}
+
+#holding-qr-label {
+  font-family: var(--font-head);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--iie-white);
+  text-align: center;
+  line-height: 1.2;
+}
+
+#holding-qr-sub {
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.6;
+  max-width: 340px;
+}
 
 /* ── SLIDESHOW ────────────────────────────────────────────────────── */
 #slideshow { position: absolute; inset: 0; }
@@ -400,7 +447,10 @@ html, body {
     <!-- Hidden — kept in DOM so QR generation still works -->
     <div id="holding-divider"></div>
     <div id="holding-right">
-      <canvas id="holding-qr-canvas" width="220" height="220"></canvas>
+      <div id="holding-qr-eyebrow">Scan to Add Your Photos</div>
+      <canvas id="holding-qr-canvas" width="300" height="300"></canvas>
+      <div id="holding-qr-label">Point your camera here</div>
+      <div id="holding-qr-sub">Upload your photos to see them on screen</div>
     </div>
   </div>
 
@@ -424,7 +474,7 @@ html, body {
       <div id="qr-text">
         <div id="qr-eyebrow">Add Your Photos</div>
         <div id="qr-heading">Scan to Upload</div>
-        <div id="qr-sub">Open Google Drive and drop your photos into the shared folder</div>
+        <div id="qr-sub"> Drop your photos when prompted</div>
       </div>
     </div>
   </div>
@@ -507,7 +557,7 @@ function generateQR(url) {
     }, 350);
   }
 
-  renderInto(document.getElementById('holding-qr-canvas'), 220);
+  renderInto(document.getElementById('holding-qr-canvas'), 300);
   renderInto(document.getElementById('qr-canvas'), 200);
 }
 
