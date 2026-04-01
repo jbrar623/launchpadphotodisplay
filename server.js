@@ -9,7 +9,9 @@ const fs     = require('fs');
 const path   = require('path');
 const config = require('./display.config.js');
 
-// ── Load .env ────────────────────────────────────────────────────────
+// ── Load environment variables ───────────────────────────────────────
+// Locally: reads from .env file.
+// On Railway: variables are injected directly into process.env — no file needed.
 const env = {};
 try {
   fs.readFileSync(path.join(__dirname, '.env'), 'utf8')
@@ -21,9 +23,15 @@ try {
       env[key.trim()] = rest.join('=').trim();
     });
 } catch {
-  console.error('❌  .env file not found.');
-  process.exit(1);
+  // No .env file — running on Railway or another platform that injects env vars directly.
+  // Fall through and read from process.env below.
 }
+
+// Merge process.env so Railway-injected variables are always available
+// process.env takes precedence over .env file values
+Object.keys(process.env).forEach(k => {
+  if (process.env[k]) env[k] = process.env[k];
+});
 
 const REQUIRED = ['GOOGLE_API_KEY', 'DRIVE_FOLDER_ID', 'DRIVE_FOLDER_URL'];
 REQUIRED.forEach(k => {
