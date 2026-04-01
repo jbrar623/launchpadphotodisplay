@@ -1,5 +1,10 @@
 # IIE Photo Display
 
+## Railway URL's for viewing
+
+Main page: https://launchpadphotodisplay-production.up.railway.app
+Uploading page: https://launchpadphotodisplay-production.up.railway.app/upload 
+
 ## What is Railway?
 
 Railway is a hosting platform that puts your Node.js server on the internet without you having to manage any infrastructure. You connect your GitHub repo, Railway detects it's a Node.js app, and gives you a live public URL automatically. No servers to configure, no SSL certificates to set up, no terminal commands beyond `git push`.
@@ -34,7 +39,7 @@ DRIVE_FOLDER_URL=...
 GOOGLE_SERVICE_ACCOUNT_KEY_PATH=./service-account-key.json
 ```
 
-Drop `iie-logo.png` into the project folder, then:
+Drop `iie-logo.svg` into the project folder, then:
 ```
 node server.js
 ```
