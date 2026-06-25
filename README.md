@@ -10,7 +10,7 @@ Uploading page: https://launchpadphotodisplay-production.up.railway.app/upload
 
 This web app was designed for the 2026 Launchpad Pitch competition, held by the Institute for Innovation and Entrepreneurship at MRU. This was created by me (Joban Brar), as an intern for the IIE, inspired by the work of Matthew Hrehirchuk and Taylor Amy, for a similar display used at MRUHacks! This webapp was deployed using Railway. 
 
-# Deployement
+## Deployment
 
 Railway is a hosting platform that puts Node.js servers on the internet without little infrastructure management. To use Railway you can connect the repository, which Railway reads and detects as Node.js and provides you with a public and live URL you can use. 
 
