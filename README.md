@@ -1,30 +1,28 @@
-# IIE Photo Display
+# IIE Launchpad Pitch Competition 2026 Photo Display
 
-## Railway URL's for viewing
+## URL's for viewing
 
 Main page: https://launchpadphotodisplay-production.up.railway.app
+
 Uploading page: https://launchpadphotodisplay-production.up.railway.app/upload 
 
-## What is Railway?
+## Start Here! 
 
-Railway is a hosting platform that puts your Node.js server on the internet without you having to manage any infrastructure. You connect your GitHub repo, Railway detects it's a Node.js app, and gives you a live public URL automatically. No servers to configure, no SSL certificates to set up, no terminal commands beyond `git push`.
+This web app was designed for the 2026 Launchpad Pitch competition, held by the Institute for Innovation and Entrepreneurship at MRU. This was created by me (Joban Brar), as an intern for the IIE, inspired by the work of Matthew Hrehirchuk and Taylor Amy, for a similar display used at MRUHacks! This webapp was deployed using Railway. 
 
-For this project that means:
-- The **display page** is a real URL you open in any browser — no `node server.js` needed on the day
-- The **upload page** is a real public URL that works on any phone on any network — no wifi restrictions
-- Environment variables (API keys, secrets) are stored securely in Railway's dashboard, not in any file
+# Deployement
 
-**Pricing:** Railway gives you a 30-day free trial with $5 in credits. After that the Hobby plan is $5/month — but since this server is mostly idle between events, actual usage will likely stay well under that. See [railway.com/pricing](https://railway.com/pricing) for details.
+Railway is a hosting platform that puts Node.js servers on the internet without little infrastructure management. To use Railway you can connect the repository, which Railway reads and detects as Node.js and provides you with a public and live URL you can use. 
 
----
+For this project Railway was useful as the display pages is a real URL that can be used on any browser to present the images on a screen, and the upload pages is a real public URL that can work on any attendees phone regardless of their network or wifi connection. For this context of this short term project a free trial was used, generally railway is $5/month, and there are many alternatives for deployment. 
 
 ## Setup
 
 ### 1. Google Cloud
 
 - Enable the **Google Drive API** in [Google Cloud Console](https://console.cloud.google.com)
-- Create an **API key** — restrict it to Drive API only. This is for *reading* photos.
-- Create a **Service account** — this is for *uploading* photos.
+- Create an **API key** and restrict it to Drive API only. This is for *reading* photos.
+- Create a **Service account**, this is for *uploading* photos.
   - Go to the **Keys** tab → Add Key → Create new key → JSON → Download
   - Rename the downloaded file to `service-account-key.json` and put it in this folder
   - Share your Drive folder with the service account's `client_email` address as **Editor**
@@ -39,7 +37,7 @@ DRIVE_FOLDER_URL=...
 GOOGLE_SERVICE_ACCOUNT_KEY_PATH=./service-account-key.json
 ```
 
-Drop `iie-logo.svg` into the project folder, then:
+Drop `iie-logo.svg` (or any relevant logo) into the project folder, then:
 ```
 node server.js
 ```
@@ -64,19 +62,17 @@ Open `http://localhost:3000` for the display, `http://localhost:3000/upload` for
    Note: instead of a file path, we paste the JSON contents directly as an env variable when deployed.
 
 4. Update `server.js` to handle the inline JSON by changing the service account loading line:
-   Railway sets `SERVICE_ACCOUNT_JSON` as the raw JSON string, so on Railway we parse it directly instead of reading a file. This is already handled in the code — it checks `process.env.SERVICE_ACCOUNT_JSON` first, then falls back to the file path for local development.
+   Railway sets `SERVICE_ACCOUNT_JSON` as the raw JSON string, so on Railway we parse it directly instead of reading a file.
 
-5. Go to **Settings → Networking → Generate Domain** — Railway gives you a URL like `https://iie-display.up.railway.app`
+5. Go to **Settings → Networking → Generate Domain**: Railway gives you a URL like `https://iie-display.up.railway.app`
 
-6. Every time you `git push` to your repo, Railway automatically redeploys. No manual steps.
+6. Every time you `git push` to your repo, Railway automatically updates and redeploys.
 
 ### 4. On the day
 
 1. Open `https://your-app.up.railway.app` on the projector laptop → press `F11` for fullscreen
 2. The QR code on screen already points to `https://your-app.up.railway.app/upload`
-3. Students scan → upload page opens on their phone → no Google account, no wifi switching needed
-
----
+3. Attendees scan → upload page opens on their phone → no Google account needed
 
 ## Folder structure
 
@@ -94,8 +90,6 @@ iie-display/
 └── README.md
 ```
 
----
-
 ## Configuration (`display.config.js`)
 
 | Setting | What it does |
@@ -109,8 +103,6 @@ iie-display/
 | `display.qrHeading` | Heading on the QR card |
 | `display.qrSubtext` | Subtext on the QR card |
 
----
-
 ## Controls
 
 | Key | Action |
@@ -120,11 +112,7 @@ iie-display/
 | `→` / `Space` | Next slide |
 | `←` | Previous slide |
 
----
 
 ## Further reading
-
-- [Railway docs](https://docs.railway.com)
 - [Deploying Node.js on Railway](https://docs.railway.com/guides/express)
-- [Railway pricing](https://railway.com/pricing)
 - [Google Drive API docs](https://developers.google.com/drive/api/reference/rest/v3)
