@@ -1,6 +1,5 @@
 // IIE Photo Display — configuration
 // Edit these values to control display behaviour.
-// This file is safe to commit — no secrets live here.
 
 const config = {
   photowall: {
