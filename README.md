@@ -1,5 +1,7 @@
 # IIE Launchpad Pitch Competition 2026 Photo Display
 
+### Project is currently inactive (not deployed). 
+
 ## URL's for viewing
 
 Main page: https://launchpadphotodisplay-production.up.railway.app
